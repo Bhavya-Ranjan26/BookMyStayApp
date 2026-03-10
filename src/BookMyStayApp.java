@@ -28,33 +28,26 @@ abstract class Room {
     }
 }
 
-
 /* Single Room */
 class SingleRoom extends Room {
-
     public SingleRoom() {
         super("Single Room", 1, 1000);
     }
 }
 
-
 /* Double Room */
 class DoubleRoom extends Room {
-
     public DoubleRoom() {
         super("Double Room", 2, 1800);
     }
 }
 
-
 /* Suite Room */
 class SuiteRoom extends Room {
-
     public SuiteRoom() {
         super("Suite Room", 3, 3500);
     }
 }
-
 
 /**
  * Centralized Room Inventory using HashMap
@@ -92,12 +85,43 @@ class RoomInventory {
     }
 }
 
+/**
+ * Room Search Service - read-only access to inventory
+ * @version 4.0
+ */
+class RoomSearchService {
+
+    private RoomInventory inventory;
+    private Room[] rooms;
+
+    public RoomSearchService(RoomInventory inventory, Room[] rooms) {
+        this.inventory = inventory;
+        this.rooms = rooms;
+    }
+
+    // Search and display only available rooms
+    public void displayAvailableRooms() {
+        System.out.println("\nAvailable Rooms for Guests:\n");
+        boolean anyAvailable = false;
+        for (Room room : rooms) {
+            int count = inventory.getAvailability(room.getRoomType());
+            if (count > 0) {
+                room.displayRoomDetails();
+                System.out.println("Available: " + count + " rooms\n");
+                anyAvailable = true;
+            }
+        }
+        if (!anyAvailable) {
+            System.out.println("No rooms available at the moment.");
+        }
+    }
+}
 
 /**
  * Book My Stay Application
- * Use Case 2 + Use Case 3 Combined
+ * Combines Use Cases 2, 3, and 4
  *
- * @version 3.1
+ * @version 4.1
  */
 public class BookMyStayApp {
 
@@ -105,44 +129,39 @@ public class BookMyStayApp {
 
         System.out.println("=================================");
         System.out.println("       Book My Stay App");
-        System.out.println("   Hotel Booking System v3.1");
+        System.out.println("   Hotel Booking System v4.1");
         System.out.println("=================================");
 
-        // Create room objects (Polymorphism)
+        // Initialize room objects
         Room single = new SingleRoom();
         Room doubleRoom = new DoubleRoom();
         Room suite = new SuiteRoom();
+        Room[] allRooms = {single, doubleRoom, suite};
 
-        // Display room details
-        System.out.println("\nRoom Details\n");
+        // Display room details (Use Case 2)
+        System.out.println("\nRoom Details:");
+        for (Room room : allRooms) {
+            room.displayRoomDetails();
+            System.out.println();
+        }
 
-        single.displayRoomDetails();
-        System.out.println();
-
-        doubleRoom.displayRoomDetails();
-        System.out.println();
-
-        suite.displayRoomDetails();
-
-        // Initialize centralized inventory
+        // Initialize centralized inventory (Use Case 3)
         RoomInventory inventory = new RoomInventory();
-
         inventory.addRoomType(single.getRoomType(), 10);
         inventory.addRoomType(doubleRoom.getRoomType(), 5);
-        inventory.addRoomType(suite.getRoomType(), 2);
+        inventory.addRoomType(suite.getRoomType(), 0); // Suite unavailable
 
         // Display inventory
         inventory.displayInventory();
 
-        // Example lookup
-        System.out.println("\nChecking Double Room availability...");
-        System.out.println("Available Double Rooms: "
-                + inventory.getAvailability("Double Room"));
+        // Initialize Search Service (Use Case 4)
+        RoomSearchService searchService = new RoomSearchService(inventory, allRooms);
 
-        // Example update
-        System.out.println("\nUpdating Double Room availability to 4...");
-        inventory.updateAvailability("Double Room", 4);
+        // Guest searches for available rooms (read-only)
+        searchService.displayAvailableRooms();
 
+        // Verify inventory not modified
+        System.out.println("\nInventory after search (should be unchanged):");
         inventory.displayInventory();
     }
 }
